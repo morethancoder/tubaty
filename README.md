@@ -7,8 +7,11 @@ keep in mind if you close the terminal the script will no longer work
 follow @alithedev:
 
 Website: https://www.morethancoder.com
+
 Youtube: https://www.youtube.com/c/morethancoder
+
 Facebook: https://www.facebook.com/morethancoder
+
 Instagram: https://www.instagram.com/morethancoder/
 
 dont forget to star this repo !!
@@ -20,7 +23,9 @@ pip install pytube==12.1.0
 pip install pytelegrambotapi==4.4.0
 ```
 
-## [step 1] run the script by typing `python tubaty.py`
+## [ step 1 ] run the script
+
+run the script by typing `python tubaty.py`
 
 if are not on windows you might want to use `python3 tubaty.py`
 after running the script you will be prompt to enter telegram bot token
