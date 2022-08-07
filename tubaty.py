@@ -34,7 +34,6 @@ MMMMMMMM               MMMMMMMM      TTTTTTTTTTT             CCCCCCCCCCCCC
 \33[37m\033[0;37m""")
 # imports
 import os
-from time import sleep
 # first thing first check install packages
 try:
     from pytube import YouTube
@@ -50,7 +49,7 @@ except ImportError as e:
 
 # variables
 DOWNLOAD_PATH="./downloads/"
-listening=False
+path_in_use=False
 commands = [
 BotCommand("start","welcome message"),
 BotCommand("help","help message"),
@@ -58,11 +57,14 @@ BotCommand("download","downloads a youtube video from url")
 ]
 text_msg={
     "welcome":u"\nأهلاً ({name}) ✋"
-    "\nهذا البوت يعمل على سورس tubaty 🤖"
+    "\n\nهذا البوت يعمل على سورس tubaty 🤖"
     "\n\n  اكتب /download لتحميل فيديو من اليوتيوب",
     "url":"ارسل رابط الفيديو",
-    "download_start":"جاي تنزيل الفيديو الرجاء الانتظار ...",
-    "download_end":"تم تنزيل الفيديو بنجاح !"
+    "download_start":"جاي تنزيل {video} الرجاء الانتظار ⏳ ...",
+    "download_end":"تم التنزيل بنجاح !",
+    "sending":"جاري الارسال  ⏳ ...",
+    "done":"{video}",
+    "retry":"خطأ : لا يوجد رابط كهذا الرجاء اعادة المحاولة"
 }
 
 
@@ -71,41 +73,96 @@ for i in range(5):
         TOKEN=input("\n\033[0;33m[TOKEN]\033[0;37m  enter your telebot token : ")
         bot = TeleBot(TOKEN)
         bot.set_my_commands(commands)
+        print("\nyour bot has been \033[0;32mactivated\033[0;37m !")
         break
     except:
         print("\n\033[0;31m[Error]\033[0;37m your telebot token is not valid please try another one !")
         continue
 
-print("\nyour bot has been \033[0;32mactivated\033[0;37m !")
+
 
 @bot.message_handler(commands=["start","help"])
 def on_start(msg):
+    """
+    handles [start,help] commands
+    -
+    sends a welcome msg with user's name
+    """
     chat_id = msg.chat.id
     first_name = msg.from_user.first_name
     bot.send_message(chat_id,text_msg["welcome"].format(name=first_name))
 
 @bot.message_handler(commands=["download"])
 def on_download(msg):
+    """
+    handles the download command
+    -
+    prompt user to send url then
+    activates the download function
+    """
     chat_id = msg.chat.id
     url_request =bot.send_message(chat_id,text_msg["url"])
-    bot.register_next_step_handler(url_request,download)
-def download(urlmsg):
+    clean() # cleans only if path not in use
+    bot.register_next_step_handler(url_request,validate_url)
+def validate_url(urlmsg):
+    """
+    get valid youtube url
+    _
+    prompt user to enter url and check if its valid
+    """
     url=urlmsg.text
     chat_id = urlmsg.chat.id
-    new_message=bot.send_message(chat_id,text_msg["download_start"])
+    
+    try:
+        YouTube(url)
+    except:
+        url_request=bot.send_message(chat_id,text_msg["retry"])
+        return bot.register_next_step_handler(url_request,validate_url)
+    
+    return download(urlmsg)
+
+def download(urlmsg):
+    """
+    download and send video
+    -
+    takes the url from user then sends a video downloaded from youtube
+    """
+    global path_in_use
+    path_in_use = True
+    chat_id = urlmsg.chat.id
+    tube = YouTube(urlmsg.text)
+    #TODO check if video already on telegram db
+    new_message=bot.send_message(chat_id,text_msg["download_start"].format(video=tube.title))
     message_id=new_message.message_id
     if os.path.exists(DOWNLOAD_PATH):
         pass
     else:
         os.mkdir("downloads")
-    tube=YouTube(url)
     tube.streams.filter(progressive=True, file_extension="mp4")
-    tube.streams.get_highest_resolution().download(DOWNLOAD_PATH)
+    pathtosaved=tube.streams.get_highest_resolution().download(DOWNLOAD_PATH)
     bot.edit_message_text(text_msg["download_end"],chat_id,message_id)
-    media=open(DOWNLOAD_PATH)
-    #TODO we are stuck here how to send the video
-    bot.send_video(chat_id,media)
-    
+    media=open(pathtosaved,'rb') #rb for read binary
+    bot.edit_message_text(text_msg["sending"],chat_id,message_id)
+    bot.send_video(chat_id, video=media, supports_streaming=True)
+    bot.edit_message_text(text_msg["done"].format(video=tube.title),chat_id,message_id)
+    path_in_use = False
+    return 
+
+# os.remove(fr'{DOWNLOAD_PATH}{tube.title}.mp4')
+def clean():
+    """
+    cleaning
+    -
+    removes every file in the download directory to free up  space
+    """
+    global path_in_use
+    if path_in_use:
+        pass
+    else:
+        files=os.listdir(DOWNLOAD_PATH)
+        for file in files:
+            os.remove(DOWNLOAD_PATH+file)
+            print(file+" deleted !")
 
 print("""
 your bot is running with \033[0;35mtubaty\033[0;37m source ...

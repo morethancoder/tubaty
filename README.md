@@ -32,3 +32,11 @@ after running the script you will be prompt to enter telegram bot token
 
 you can create a token using bot father on telegram https://t.me/BotFather
 then simply copy and paste it in the terminal
+
+enter your bot token then press enter
+
+## [ step 2 ] use the bot
+
+to use the bot u can send the `/download` command then send the video url
+
+and you are golden 🥇
