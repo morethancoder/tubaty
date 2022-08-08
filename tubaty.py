@@ -1,14 +1,3 @@
-#? terminal coloring
-# BOLD = '\033[1m'
-# U = '\033[4m'
-# BL='\033[0;30m'        # Black
-# R='\033[0;31m'          # Red
-# G='\033[0;32m'        # Green
-# Y='\033[0;33m'       # Yellow
-# B='\033[0;34m'         # Blue
-# P='\033[0;35m'       # Purple
-# C='\033[0;36m'         # Cyan
-# W='\033[0;37m'        # White
 
 print("""\33[32m\033[0;32m
                                                                               
@@ -148,7 +137,6 @@ def download(urlmsg):
     path_in_use = False
     return 
 
-# os.remove(fr'{DOWNLOAD_PATH}{tube.title}.mp4')
 def clean():
     """
     cleaning
@@ -162,7 +150,6 @@ def clean():
         files=os.listdir(DOWNLOAD_PATH)
         for file in files:
             os.remove(DOWNLOAD_PATH+file)
-            print(file+" deleted !")
 
 print("""
 your bot is running with \033[0;35mtubaty\033[0;37m source ...
